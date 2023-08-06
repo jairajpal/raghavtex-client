@@ -6,9 +6,7 @@ interface SuggestionItem {
 
 interface Props {
   suggestions: SuggestionItem[];
-  handleInputForEditChallan: (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => void;
+  handleInputForEditChallan: (event: any) => void;
 }
 
 const SuggestionListEdit: React.FC<Props> = ({
