@@ -27,6 +27,7 @@ const SuggestionList: React.FC<Props> = ({
       ) {
         setShowDropdown({
           from: false,
+          size: false,
           color: false,
           type: false,
           index: 0,

@@ -28,7 +28,11 @@ import { faEdit, faSave, faTimes } from "@fortawesome/free-solid-svg-icons";
 import moment from "moment";
 import exportToCSV from "@/utils/csvDowload";
 
-const RawMaterial = () => {
+interface Props {
+  activeContent: string;
+}
+
+const RawMaterial: React.FC<Props> = ({ activeContent }) => {
   //today date format
   const today = new Date();
 
@@ -46,20 +50,18 @@ const RawMaterial = () => {
 
   const [suggestions, setSuggestions] = useState<DropDown[]>([]);
 
-  const [createChallanData, setCreateChallanData] = useState<CreateChallanData>(
-    {
-      userId: authUserData?.user?._id,
-      challan_number: 0,
-      date: "",
-      from: "",
-    }
-  );
+  const [createChallanData, setCreateChallanData] = useState<any>({
+    userId: authUserData?.user?._id,
+    challan_number: 0,
+    date: "",
+    from: "",
+  });
 
   const [filters, setFilters] = useState<any>({
     challanNumberFilter: 0,
     startDate: today,
     endDate: today,
-    gradeFilter: "",
+    sizeFilter: "",
     fromFilter: [],
     typeFilter: [],
     colorFilter: [],
@@ -67,6 +69,7 @@ const RawMaterial = () => {
 
   const [showDropdown, setShowDropdown] = useState<any>({
     from: false,
+    size: false,
     color: false,
     type: false,
     index: 0,
@@ -84,7 +87,7 @@ const RawMaterial = () => {
     challan_number: 0,
     date: today,
     from: "",
-    grade: "",
+    size: "",
     type: "",
     color: "",
     quantity: 0,
@@ -96,7 +99,7 @@ const RawMaterial = () => {
     CreateChallanReqDataObject[]
   >([
     {
-      grade: "",
+      size: "",
       type: "",
       color: "",
       quantity: 0,
@@ -110,21 +113,32 @@ const RawMaterial = () => {
       type: [],
       color: [],
       from: [],
+      size: [],
     });
   //use states
 
+  //use effects
   useEffect(() => {
+    let isDispatch = activeContent === "dispatch";
+
     (async () => {
       try {
-        const { data } = await getAllChallan(authUserData.user._id, filters);
-        console.log("data: ", data);
-        const value = await getDropDownFilter(authUserData.user._id);
+        const { data } = await getAllChallan(
+          authUserData.user._id,
+          filters,
+          isDispatch
+        );
+        const value = await getDropDownFilter(
+          authUserData.user._id,
+          isDispatch
+        );
         setUserChallansData(data.challan);
         setFilterTotal(data.result);
         setCreateDropDownFilter({
           type: value.data.type,
           color: value.data.color,
           from: value.data.from,
+          size: value.data.size,
         });
       } catch (error) {}
     })();
@@ -136,7 +150,7 @@ const RawMaterial = () => {
     });
     setCreateChallanDataArray([
       {
-        grade: "",
+        size: "",
         type: "",
         color: "",
         quantity: 0,
@@ -144,14 +158,14 @@ const RawMaterial = () => {
         remarks: "",
       },
     ]);
-  }, [authUserData, filters]);
+  }, [authUserData, activeContent, filters]);
 
   const reset = () => {
     setFilters({
       challanNumberFilter: 0,
       startDate: today,
       endDate: today,
-      gradeFilter: "",
+      sizeFilter: [],
       fromFilter: [],
       typeFilter: [],
       colorFilter: [],
@@ -178,6 +192,8 @@ const RawMaterial = () => {
     index: number,
     event: ChangeEvent<HTMLInputElement>
   ) => {
+    let isDispatch = activeContent === "dispatch";
+
     const { name, value } = event.target;
     const updatedData = [...createChallanDataArray];
     updatedData[index] = { ...updatedData[index], [name]: value };
@@ -187,7 +203,7 @@ const RawMaterial = () => {
       search: value,
     };
     const filteredSuggestions: CommonApiResponse<DropDown[]> =
-      await getDropDown(authUserData.user._id, filters);
+      await getDropDown(authUserData.user._id, filters, isDispatch);
     setSuggestions(filteredSuggestions.data);
   };
 
@@ -195,6 +211,8 @@ const RawMaterial = () => {
   const handleInputChangeDrop = async (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
+    let isDispatch = activeContent === "dispatch";
+
     const value = e.target.value;
     setCreateChallanData({ ...createChallanData, from: value });
     setShowDropdown({ [e.target.name]: value !== "", ...showDropdown });
@@ -203,7 +221,7 @@ const RawMaterial = () => {
       search: e.target.value,
     };
     const filteredSuggestions: CommonApiResponse<DropDown[]> =
-      await getDropDown(authUserData.user._id, filters);
+      await getDropDown(authUserData.user._id, filters, isDispatch);
     setSuggestions(filteredSuggestions.data);
   };
 
@@ -229,29 +247,34 @@ const RawMaterial = () => {
         name = "color";
       } else if (showDropdown.type) {
         name = "type";
+      } else if (showDropdown.size) {
+        name = "size";
       }
       const updatedData = [...createChallanDataArray];
       updatedData[index] = { ...updatedData[index], [name]: suggestion };
       setCreateChallanDataArray(updatedData);
     } else {
       let name = "";
+      console.log("showDropdown: ", showDropdown);
       if (showDropdown.color) {
         name = "color";
       } else if (showDropdown.type) {
         name = "type";
       } else if (showDropdown.from) {
         name = "from";
+      } else if (showDropdown.size) {
+        name = "size";
       }
       setRowData((prevData) => ({
         ...prevData,
         [name]: suggestion,
       }));
-      console.log(rowData);
     }
 
     setSelectedValue(suggestion);
     setShowDropdown({
       from: false,
+      size: false,
       color: false,
       type: false,
       edit: false,
@@ -261,13 +284,14 @@ const RawMaterial = () => {
 
   //handle suggestions list for edit and create
   const handleSuggestionsOnFocus = async (type: string) => {
-    console.log("type: ", type);
+    let isDispatch = activeContent === "dispatch";
+
     const filters = {
       type: type,
       search: "",
     };
     const filteredSuggestions: CommonApiResponse<DropDown[]> =
-      await getDropDown(authUserData.user._id, filters);
+      await getDropDown(authUserData.user._id, filters, isDispatch);
     setSuggestions(filteredSuggestions.data);
   };
 
@@ -276,13 +300,20 @@ const RawMaterial = () => {
     e.preventDefault();
     setLoading(true);
     try {
+      let isDispatch = false;
+      if (activeContent === "dispatch") {
+        isDispatch = true;
+      }
       let validate = validateFields(createChallanData);
       if (validate) validate = validateArray(createChallanDataArray);
       if (validate) {
-        const { data } = await createChallan({
-          ...createChallanData,
-          data: createChallanDataArray,
-        });
+        const { data } = await createChallan(
+          {
+            ...createChallanData,
+            data: createChallanDataArray,
+          },
+          isDispatch
+        );
         setUserChallansData([...data, ...userChallansData]);
       } else {
         alert(
@@ -357,28 +388,41 @@ const RawMaterial = () => {
   const handleInputForEditChallan = async (event: {
     target: { name: any; value: any };
   }) => {
+    let isDispatch = activeContent === "dispatch";
+
     const { name, value } = event.target;
     setRowData((prevData) => ({
       ...prevData,
       [name]: value,
     }));
 
-    if (name === "type" || name === "from" || name === "color") {
+    if (
+      name === "type" ||
+      name === "from" ||
+      name === "color" ||
+      name === "size"
+    ) {
       setShowDropdown({ [event.target.name]: value !== "", ...showDropdown });
       const filters = {
         type: event.target.name,
         search: event.target.value,
       };
       const filteredSuggestions: CommonApiResponse<DropDown[]> =
-        await getDropDown(authUserData.user._id, filters);
+        await getDropDown(authUserData.user._id, filters, isDispatch);
       setSuggestions(filteredSuggestions.data);
     }
   };
 
   //save edit
   const handleSave = async () => {
+    let isDispatch = activeContent === "dispatch";
+
     await editChallan(rowData);
-    const { data } = await getAllChallan(authUserData.user._id, filters);
+    const { data } = await getAllChallan(
+      authUserData.user._id,
+      filters,
+      isDispatch
+    );
     setUserChallansData(data.challan);
     setFilterTotal(data.result);
     setIsEditMode("");
@@ -395,7 +439,7 @@ const RawMaterial = () => {
     setCreateChallanDataArray([
       ...createChallanDataArray,
       {
-        grade: "",
+        size: "",
         type: "",
         color: "",
         quantity: 0,
@@ -419,7 +463,7 @@ const RawMaterial = () => {
     for (let i = 0; i < createChallanDataArray.length; i++) {
       const obj = createChallanDataArray[i];
       if (
-        // obj.grade.trim() === "" ||
+        // obj.size.trim() === "" ||
         obj.type.trim() === "" ||
         obj.color.trim() === "" ||
         obj.quantity < 1 ||
@@ -451,7 +495,7 @@ const RawMaterial = () => {
       Date: new Date(challan.date).toLocaleDateString("en-GB"),
       "Challan No.": challan.challan_number,
       Through: challan.from,
-      Grade: challan.grade,
+      Size: challan.size,
       Type: challan.type,
       Color: challan.color,
       Quantity: challan.quantity,
@@ -488,7 +532,11 @@ const RawMaterial = () => {
           <></>
         )}
         <div className="flex w-full justify-between">
-          <p className="text-40 mb-3">Raw material received challan</p>
+          {activeContent === "raw" ? (
+            <p className="text-40 mb-3">Raw material received challan </p>
+          ) : (
+            <p className="text-40 mb-3">Dispatch products </p>
+          )}
         </div>
         <form autoComplete="off" className="flex flex-wrap gap-x-8 mt-6 mb-4">
           <div className="flex flex-col relative">
@@ -517,7 +565,7 @@ transition duration-200`}
                 handleInput({ target: { name: "date", value: date } })
               }
               required
-              type="string" // Set the input type to "number"
+              // type="date" // Set the input type to "number"
               name="date"
               autoFocus={false}
               className={`lightBgTextSelection w-full bg-inherit px-4 py-3 ${"outline-[1px] outline-neutral-750 hover:outline-[1px] hover:outline-neutral-50 focus:outline-[1.5px] focus:outline-neutral-50"} rounded-[12px] outline-none text-neutral-50 text-16 placeholder:text-neutral-600
@@ -529,7 +577,7 @@ transition duration-200`}
           </div>
           <div className="relative">
             <label className="text-neutral-400 inter-400 text-20 mb-[6px]">
-              By
+              Company
             </label>
             <input
               type="text"
@@ -538,6 +586,7 @@ transition duration-200`}
               onFocus={() => {
                 setShowDropdown({
                   from: true,
+                  size: false,
                   type: false,
                   color: false,
                   index: -1,
@@ -568,38 +617,6 @@ transition duration-200`}
                   <div className="flex flex-col relative">
                     {index === 0 && (
                       <label className="text-neutral-400 inter-400 text-20 mb-[6px]">
-                        Remarks
-                      </label>
-                    )}
-                    <input
-                      value={obj.remarks}
-                      onChange={(e) => handleInputChange(index, e)}
-                      name="remarks"
-                      autoFocus={false}
-                      className={`lightBgTextSelection w-full bg-inherit px-4 py-3 ${"outline-[1px] outline-neutral-750 hover:outline-[1px] hover:outline-neutral-50 focus:outline-[1.5px] focus:outline-neutral-50"}  rounded-[12px] outline-none text-neutral-50 text-16 placeholder:text-neutral-600
-            transition duration-200 `}
-                      placeholder={"Enter Remarks"}
-                    />
-                  </div>
-                  <div className="flex flex-col relative">
-                    {index === 0 && (
-                      <label className="text-neutral-400 inter-400 text-20 mb-[6px]">
-                        Grade
-                      </label>
-                    )}
-                    <input
-                      value={obj.grade ?? ""}
-                      onChange={(e) => handleInputChange(index, e)}
-                      name="grade"
-                      autoFocus={false}
-                      className={`lightBgTextSelection w-full bg-inherit px-4 py-3 ${"outline-[1px] outline-neutral-750 hover:outline-[1px] hover:outline-neutral-50 focus:outline-[1.5px] focus:outline-neutral-50"}  rounded-[12px] outline-none text-neutral-50 text-16 placeholder:text-neutral-600
-            transition duration-200 `}
-                      placeholder={"Enter Grade Quality"}
-                    />
-                  </div>
-                  <div className="flex flex-col relative">
-                    {index === 0 && (
-                      <label className="text-neutral-400 inter-400 text-20 mb-[6px]">
                         Type
                       </label>
                     )}
@@ -610,6 +627,7 @@ transition duration-200`}
                       onFocus={() => {
                         setShowDropdown({
                           from: false,
+                          size: false,
                           type: true,
                           color: false,
                           index: index,
@@ -641,6 +659,48 @@ transition duration-200`}
                   <div className="flex flex-col relative">
                     {index === 0 && (
                       <label className="text-neutral-400 inter-400 text-20 mb-[6px]">
+                        Size
+                      </label>
+                    )}
+                    <input
+                      type="text"
+                      value={obj.size}
+                      name="size"
+                      onFocus={() => {
+                        setShowDropdown({
+                          from: false,
+                          type: false,
+                          size: true,
+                          color: false,
+                          index: index,
+                          edit: false,
+                        });
+                        handleSuggestionsOnFocus("size");
+                      }}
+                      onChange={(e) => handleInputChange(index, e)}
+                      className={`lightBgTextSelection w-full bg-inherit px-4 py-3 ${"outline-[1px] outline-neutral-750 hover:outline-[1px] hover:outline-neutral-50 focus:outline-[1.5px] focus:outline-neutral-50"}  rounded-[12px] outline-none text-neutral-50 text-16 placeholder:text-neutral-600
+            transition duration-200 `}
+                      placeholder={"Enter size"}
+                    />
+                    {showDropdown.size &&
+                      showDropdown.index == index &&
+                      !showDropdown.edit && (
+                        <div className="absolute z-10 right-0 mt-2 max-h-40 overflow-y-auto">
+                          <SuggestionList
+                            suggestions={suggestions}
+                            index={index}
+                            setShowDropdown={setShowDropdown}
+                            handleSelectSuggestion={(
+                              name: string,
+                              index: number
+                            ) => handleSelectSuggestion(name, index)}
+                          />
+                        </div>
+                      )}
+                  </div>
+                  <div className="flex flex-col relative">
+                    {index === 0 && (
+                      <label className="text-neutral-400 inter-400 text-20 mb-[6px]">
                         Color
                       </label>
                     )}
@@ -651,6 +711,7 @@ transition duration-200`}
                       onFocus={() => {
                         setShowDropdown({
                           from: false,
+                          size: false,
                           type: false,
                           color: true,
                           index: index,
@@ -717,6 +778,22 @@ transition duration-200`}
                       placeholder={"Enter Weight"}
                     />
                   </div>
+                  <div className="flex flex-col relative">
+                    {index === 0 && (
+                      <label className="text-neutral-400 inter-400 text-20 mb-[6px]">
+                        Remarks
+                      </label>
+                    )}
+                    <input
+                      value={obj.remarks}
+                      onChange={(e) => handleInputChange(index, e)}
+                      name="remarks"
+                      autoFocus={false}
+                      className={`lightBgTextSelection w-full bg-inherit px-4 py-3 ${"outline-[1px] outline-neutral-750 hover:outline-[1px] hover:outline-neutral-50 focus:outline-[1.5px] focus:outline-neutral-50"}  rounded-[12px] outline-none text-neutral-50 text-16 placeholder:text-neutral-600
+            transition duration-200 `}
+                      placeholder={"Enter Remarks"}
+                    />
+                  </div>
                   <button
                     className={`bg-neutral-50 text-neutral-950 rounded-[12px] py-3 px-5 inter-600 disabled:opacity-60 disabled:text-neutral-950 disabled:cursor-not-allowed h-[48px] hover:opacity-80 transition duration-300 ${
                       index === 0 ? "mt-8" : ""
@@ -776,10 +853,12 @@ transition duration-200`}
       <div className="flex justify-between p-8 text-24">
         {/* <div className="w-[100px]">SN.</div> */}
         <div className="flex-1">Challan No.</div>
-        <div className="flex-1">Date</div>
-        <div className="flex-1">From</div>
-        <div className="flex-1">Grade</div>
+        <div className="flex-1">
+          Date <p className="text-14">(DD/MM/YYYY)</p>
+        </div>
+        <div className="flex-1">Company</div>
         <div className="flex-1">Type</div>
+        <div className="flex-1">Size</div>
         <div className="flex-1">Color</div>
         <div className="flex-1">Quantity</div>
         <div className="flex-1">Weight</div>
@@ -840,22 +919,30 @@ transition duration-200`}
           />
         </div>
         <div className="flex-1">
-          <input
-            value={filters.gradeFilter}
-            onChange={handleFilterChange}
-            name="gradeFilter"
-            type="text" // Set the input type to "number"
-            autoFocus={false}
-            className={`lightBgTextSelection w-32 bg-inherit px-2 py-3 ${"outline-[1px] outline-neutral-750 hover:outline-[1px] hover:outline-neutral-50 focus:outline-[1.5px] focus:outline-neutral-50"} rounded-[12px] outline-none text-neutral-50 text-14 placeholder:text-neutral-600
-transition duration-200 ml-2`}
-            placeholder={"Enter Grade"}
-          />
-        </div>
-        <div className="flex-1">
           <MultiSelectDropdown
             options={createDropDownFilter.type}
             type={"typeFilter"}
             selectedValues={filters.typeFilter}
+            handleSelectOption={handleSelectOption}
+          />
+        </div>
+        {/* <div className="flex-1">
+          <input
+            value={filters.sizeFilter}
+            onChange={handleFilterChange}
+            name="sizeFilter"
+            type="text" // Set the input type to "number"
+            autoFocus={false}
+            className={`lightBgTextSelection w-32 bg-inherit px-2 py-3 ${"outline-[1px] outline-neutral-750 hover:outline-[1px] hover:outline-neutral-50 focus:outline-[1.5px] focus:outline-neutral-50"} rounded-[12px] outline-none text-neutral-50 text-14 placeholder:text-neutral-600
+transition duration-200 ml-2`}
+            placeholder={"Enter Size"}
+          />
+        </div> */}
+        <div className="flex-1">
+          <MultiSelectDropdown
+            options={createDropDownFilter.size}
+            type={"sizeFilter"}
+            selectedValues={filters.sizeFilter}
             handleSelectOption={handleSelectOption}
           />
         </div>
@@ -916,6 +1003,7 @@ transition duration-200`}
                     onFocus={() => {
                       setShowDropdown({
                         from: true,
+                        size: false,
                         type: false,
                         color: false,
                         index: -1,
@@ -939,18 +1027,6 @@ transition duration-200`}
                     </div>
                   )}
                 </div>
-                <div className="flex-1">
-                  <input
-                    value={rowData.grade}
-                    onChange={handleInputForEditChallan}
-                    name="grade"
-                    type="text" // Set the input type to "number"
-                    min={1} // Set the minimum value to 0
-                    autoFocus={false}
-                    className={`lightBgTextSelection w-32 bg-inherit px-2 py-3 ${"outline-[1px] outline-neutral-750 hover:outline-[1px] hover:outline-neutral-50 focus:outline-[1.5px] focus:outline-neutral-50"} rounded-[12px] outline-none text-neutral-50 text-16 placeholder:text-neutral-600
-                    transition duration-200`}
-                  />
-                </div>
                 <div className="flex-1 relative">
                   <input
                     type="text"
@@ -959,6 +1035,7 @@ transition duration-200`}
                     onFocus={() => {
                       setShowDropdown({
                         from: false,
+                        size: false,
                         type: true,
                         color: false,
                         index: 0,
@@ -987,10 +1064,45 @@ transition duration-200`}
                 <div className="flex-1 relative">
                   <input
                     type="text"
+                    value={rowData.size}
+                    name="size"
+                    onFocus={() => {
+                      setShowDropdown({
+                        from: false,
+                        size: true,
+                        type: false,
+                        color: false,
+                        index: 0,
+                        edit: true,
+                      });
+                      handleSuggestionsOnFocus("size");
+                    }}
+                    onChange={handleInputForEditChallan}
+                    className={`lightBgTextSelection w-32 bg-inherit px-2 py-3 ${"outline-[1px] outline-neutral-750 hover:outline-[1px] hover:outline-neutral-50 focus:outline-[1.5px] focus:outline-neutral-50"} rounded-[12px] outline-none text-neutral-50 text-16 placeholder:text-neutral-600
+                    transition duration-200`}
+                    placeholder={"Enter size"}
+                  />
+                  {showDropdown.size && showDropdown.edit && (
+                    <div className="absolute z-10 right-0 mt-2 max-h-40 overflow-y-auto">
+                      <SuggestionList
+                        suggestions={suggestions}
+                        index={0}
+                        setShowDropdown={setShowDropdown}
+                        handleSelectSuggestion={(name: string, index: number) =>
+                          handleSelectSuggestion(name, 0)
+                        }
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
                     value={rowData.color}
                     name="color"
                     onFocus={() => {
                       setShowDropdown({
+                        size: false,
                         from: false,
                         type: false,
                         color: true,
@@ -1073,8 +1185,8 @@ transition duration-200`}
                   {new Date(el.date).toLocaleDateString("en-GB")}
                 </div>
                 <div className="flex-1">{el.from}</div>
-                <div className="flex-1">{el.grade}</div>
                 <div className="flex-1">{el.type}</div>
+                <div className="flex-1">{el.size}</div>
                 <div className="flex-1">{el.color}</div>
                 {userChallansData.length !== idx + 1 ? (
                   <>
@@ -1086,13 +1198,13 @@ transition duration-200`}
                     <div className="flex-1">
                       <div className="flex-1">{el.quantity} Box/Bags</div>
                       <div className="flex-1 mt-10 text-21 ">
-                        {filterTotal.totalQuantity} Box/Bags
+                        {filterTotal?.totalQuantity || 0} Box/Bags
                       </div>
                     </div>
                     <div className="flex-1">
                       <div className="flex-1">{formatWeight(el.weight)}</div>
                       <div className="flex-1 mt-10 text-21 ">
-                        {formatWeight(filterTotal.totalWeight)}
+                        {formatWeight(filterTotal?.totalWeight || 0)}
                       </div>
                     </div>
                   </>

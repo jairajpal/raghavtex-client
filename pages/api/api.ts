@@ -45,11 +45,13 @@ export const registerAccount = async (
 
 export const getAllChallan = async (
   userId: string,
-  filters: RawMaterialFilter
+  filters: RawMaterialFilter,
+  isDispatch: boolean
 ): Promise<CommonApiResponse<getChallans>> => {
   const { data } = await instance.get("get-challan", {
     params: {
       ...filters,
+      isDispatch,
       userId: userId,
     },
   });
@@ -58,23 +60,27 @@ export const getAllChallan = async (
 
 export const getDropDown = async (
   userId: string,
-  filters: GetDropDown
+  filters: GetDropDown,
+  isDispatch: boolean
 ): Promise<CommonApiResponse<DropDown[]>> => {
   const { data } = await instance.get("get-dropdown", {
     params: {
       ...filters,
-      userId: userId,
+      isDispatch,
+      userId,
     },
   });
   return data;
 };
 
 export const getDropDownFilter = async (
-  userId: string
+  userId: string,
+  isDispatch: boolean
 ): Promise<CommonApiResponse<DropDownFilter>> => {
   const { data } = await instance.get("get-dropdownfilter", {
     params: {
       userId: userId,
+      isDispatch,
     },
   });
   return data;
@@ -88,8 +94,12 @@ export const editChallan = async (
 };
 
 export const createChallan = async (
-  challanData: CreateChallanReqData
+  challanData: CreateChallanReqData,
+  isDispatch: boolean
 ): Promise<CommonApiResponse<Challans[]>> => {
-  const { data } = await instance.post("add-challan", challanData);
+  const { data } = await instance.post("add-challan", {
+    ...challanData,
+    isDispatch,
+  });
   return data;
 };

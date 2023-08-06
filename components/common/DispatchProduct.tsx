@@ -84,7 +84,7 @@ const DispatchProduct = () => {
     challan_number: 0,
     date: today,
     from: "",
-    grade: "",
+    size: "",
     type: "",
     color: "",
     quantity: 0,
@@ -96,7 +96,7 @@ const DispatchProduct = () => {
     CreateChallanReqDataObject[]
   >([
     {
-      grade: "",
+      size: "",
       type: "",
       color: "",
       quantity: 0,
@@ -136,7 +136,7 @@ const DispatchProduct = () => {
     });
     setCreateChallanDataArray([
       {
-        grade: "",
+        size: "",
         type: "",
         color: "",
         quantity: 0,
@@ -395,7 +395,7 @@ const DispatchProduct = () => {
     setCreateChallanDataArray([
       ...createChallanDataArray,
       {
-        grade: "",
+        size: "",
         type: "",
         color: "",
         quantity: 0,
@@ -419,7 +419,7 @@ const DispatchProduct = () => {
     for (let i = 0; i < createChallanDataArray.length; i++) {
       const obj = createChallanDataArray[i];
       if (
-        // obj.grade.trim() === "" ||
+        // obj.size.trim() === "" ||
         obj.type.trim() === "" ||
         obj.color.trim() === "" ||
         obj.quantity < 1 ||
@@ -451,7 +451,7 @@ const DispatchProduct = () => {
       Date: new Date(challan.date).toLocaleDateString("en-GB"),
       "Challan No.": challan.challan_number,
       Through: challan.from,
-      Grade: challan.grade,
+      Grade: challan.size,
       Type: challan.type,
       Color: challan.color,
       Quantity: challan.quantity,
@@ -588,9 +588,9 @@ transition duration-200`}
                       </label>
                     )}
                     <input
-                      value={obj.grade ?? ""}
+                      value={obj.size ?? ""}
                       onChange={(e) => handleInputChange(index, e)}
-                      name="grade"
+                      name="size"
                       autoFocus={false}
                       className={`lightBgTextSelection w-full bg-inherit px-4 py-3 ${"outline-[1px] outline-neutral-750 hover:outline-[1px] hover:outline-neutral-50 focus:outline-[1.5px] focus:outline-neutral-50"}  rounded-[12px] outline-none text-neutral-50 text-16 placeholder:text-neutral-600
             transition duration-200 `}
@@ -941,9 +941,9 @@ transition duration-200`}
                 </div>
                 <div className="flex-1">
                   <input
-                    value={rowData.grade}
+                    value={rowData.size}
                     onChange={handleInputForEditChallan}
-                    name="grade"
+                    name="size"
                     type="text" // Set the input type to "number"
                     min={1} // Set the minimum value to 0
                     autoFocus={false}
@@ -1073,7 +1073,7 @@ transition duration-200`}
                   {new Date(el.date).toLocaleDateString("en-GB")}
                 </div>
                 <div className="flex-1">{el.from}</div>
-                <div className="flex-1">{el.grade}</div>
+                <div className="flex-1">{el.size}</div>
                 <div className="flex-1">{el.type}</div>
                 <div className="flex-1">{el.color}</div>
                 {userChallansData.length !== idx + 1 ? (

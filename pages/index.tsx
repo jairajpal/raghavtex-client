@@ -2,7 +2,6 @@ import PrivateRoute from "@/components/common/PrivateRoute";
 import NavBar from "@/components/common/NavBar";
 import RawMaterial from "@/components/common/RawMaterial";
 import { useState } from "react";
-import DispatchProduct from "@/components/common/DispatchProduct";
 import MainPage from "@/components/common/MainPage";
 
 export default function Home() {
@@ -19,8 +18,12 @@ export default function Home() {
         />
         {/* Content */}
         {activeContent === "home" && <MainPage />}
-        {activeContent === "raw" && <RawMaterial />}
-        {activeContent === "dispatch" && <DispatchProduct />}
+        {activeContent === "raw" && (
+          <RawMaterial activeContent={activeContent} />
+        )}
+        {activeContent === "dispatch" && (
+          <RawMaterial activeContent={activeContent} />
+        )}
         {/* {activeContent === 'contact' && <ContactContent />} */}
       </div>
     </PrivateRoute>

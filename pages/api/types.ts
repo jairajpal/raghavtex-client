@@ -34,7 +34,7 @@ export interface Challans {
   createdAt: string;
   challan_number: number;
   _id: string;
-  grade: string;
+  size: string;
   type: string;
   color: string;
   quantity: number;
@@ -74,7 +74,7 @@ export interface EditChallanData {
   challan_number: number;
   date: Date;
   from: string;
-  grade: string;
+  size: string;
   type: string;
   color: string;
   quantity: number;
@@ -97,10 +97,11 @@ export interface DropDownFilter {
   type: DropDown[];
   color: DropDown[];
   from: DropDown[];
+  size: DropDown[];
 }
 
 export interface CreateChallanReqDataObject {
-  grade: string;
+  size: string;
   type: string;
   color: string;
   quantity: number;
@@ -113,7 +114,7 @@ export interface RawMaterialFilter {
   startDate: string;
   endDate: string;
   fromFilter: string[];
-  gradeFilter: string;
+  sizeFilter: string;
   typeFilter: string[];
   colorFilter: string[];
   [key: string]: string[] | string | number;
