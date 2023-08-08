@@ -50,6 +50,17 @@ const Navbar: React.FC<NavbarProps> = ({ onContentChange, activeContent }) => {
             >
               Dispatch Product
             </a>
+            <a
+              href="#"
+              className={`${
+                activeContent === "company"
+                  ? "bg-slate-700 text-white"
+                  : "text-gray-300 hover:bg-gray-700 hover:text-white"
+              } px-3 py-2 rounded-md text-sm font-medium`}
+              onClick={() => onContentChange("company")}
+            >
+              Company
+            </a>
           </div>
         </div>
         <div className="hidden md:flex space-x-4 my-auto justify-end">

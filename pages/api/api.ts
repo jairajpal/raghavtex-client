@@ -12,6 +12,8 @@ import {
   DropDownFilter,
   EditChallanData,
   getChallans,
+  Company,
+  getCompany,
 } from "./types";
 import { getGlobalItem } from "@/utils/local-storage";
 const accessToken = getGlobalItem("user")?.access_token;
@@ -58,6 +60,17 @@ export const getAllChallan = async (
   return data;
 };
 
+export const getAllCompany = async (
+  userId: string
+): Promise<CommonApiResponse<getCompany>> => {
+  const { data } = await instance.get("get-company", {
+    params: {
+      userId: userId,
+    },
+  });
+  return data;
+};
+
 export const getDropDown = async (
   userId: string,
   filters: GetDropDown,
@@ -93,6 +106,13 @@ export const editChallan = async (
   return data;
 };
 
+export const editCompany = async (
+  companyData: Company
+): Promise<CommonApiResponse<Company>> => {
+  const { data } = await instance.post("edit-company", companyData);
+  return data;
+};
+
 export const createChallan = async (
   challanData: CreateChallanReqData,
   isDispatch: boolean
@@ -100,6 +120,14 @@ export const createChallan = async (
   const { data } = await instance.post("add-challan", {
     ...challanData,
     isDispatch,
+  });
+  return data;
+};
+export const createCompany = async (
+  companyData: Company
+): Promise<CommonApiResponse<Company>> => {
+  const { data } = await instance.post("add-company", {
+    ...companyData,
   });
   return data;
 };

@@ -61,6 +61,9 @@ export interface getChallans {
     totalQuantity: number;
   };
 }
+export interface getCompany {
+  company: Company[];
+}
 export interface CreateChallanData {
   userId: string;
   challan_number: number;
@@ -80,6 +83,15 @@ export interface EditChallanData {
   quantity: number;
   weight: number;
   remarks: string;
+}
+export interface Company {
+  _id: string;
+  userId: string;
+  name: string;
+  gst: string;
+  phone: string;
+  isDispatch: Boolean;
+  createdAt: string;
 }
 
 export interface GetDropDown {

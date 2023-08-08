@@ -3,6 +3,7 @@ import NavBar from "@/components/common/NavBar";
 import RawMaterial from "@/components/common/RawMaterial";
 import { useState } from "react";
 import MainPage from "@/components/common/MainPage";
+import Company from "@/components/common/Company";
 
 export default function Home() {
   const [activeContent, setActiveContent] = useState("raw");
@@ -24,6 +25,7 @@ export default function Home() {
         {activeContent === "dispatch" && (
           <RawMaterial activeContent={activeContent} />
         )}
+        {activeContent === "company" && <Company />}
         {/* {activeContent === 'contact' && <ContactContent />} */}
       </div>
     </PrivateRoute>
